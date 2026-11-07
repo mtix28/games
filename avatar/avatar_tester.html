@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Avatar + Accessoire Tester</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #1a1a2e; color: #eee; padding: 20px; }
+  h1 { margin-bottom: 20px; }
+  .controls { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; align-items: flex-start; }
+  .control-group { background: #16213e; padding: 15px; border-radius: 8px; min-width: 250px; flex: 1; }
+  .control-group h3 { margin-bottom: 10px; color: #fff; background: #e94560; padding: 5px 10px; border-radius: 4px; display: inline-block; }
+  select { width: 100%; padding: 8px; margin: 5px 0; background: #0f3460; color: #fff; border: 1px solid #e94560; border-radius: 4px; }
+  label { display: block; margin: 8px 0 3px; font-size: 14px; }
+  input[type="range"] { width: 100%; }
+  .range-value { font-size: 12px; color: #aaa; }
+  .mode-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+  .mode-tabs button { flex: 1; padding: 8px; background: #0f3460; color: #fff; border: 1px solid #e94560; border-radius: 4px; cursor: pointer; font-size: 13px; }
+  .mode-tabs button.active { background: #e94560; }
+  .canvas-area { display: flex; gap: 20px; flex-wrap: wrap; }
+  .preview-box { background: #16213e; padding: 20px; border-radius: 8px; text-align: center; }
+  .preview-box h3 { margin-bottom: 10px; }
+  .avatar-container { position: relative; width: 512px; height: 512px; background: repeating-conic-gradient(#333 0% 25%, #444 0% 50%) 50% / 20px 20px; border-radius: 8px; overflow: hidden; margin: 0 auto; }
+  .avatar-container img.avatar { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+  .avatar-container img.accessory { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+  .overlay-container { position: relative; width: 2048px; height: 2048px; background: repeating-conic-gradient(#222 0% 25%, #333 0% 50%) 50% / 32px 32px; border-radius: 8px; overflow: hidden; margin: 0 auto; border: 2px solid #e94560; }
+  .overlay-container img.avatar { position: absolute; top: 512px; left: 512px; width: 1024px; height: 1024px; }
+  .overlay-container img.accessory { position: absolute; top: 512px; left: 512px; width: 1024px; height: 1024px; pointer-events: none; }
+  .bg-options { margin: 10px 0; }
+  .bg-options button { padding: 5px 10px; margin: 2px; background: #0f3460; color: #fff; border: 1px solid #e94560; border-radius: 4px; cursor: pointer; }
+  .bg-options button.active { background: #e94560; }
+  .export-box { background: #16213e; padding: 15px; border-radius: 8px; margin-top: 20px; }
+  .export-box textarea { width: 100%; height: 200px; background: #0f3460; color: #fff; border: 1px solid #e94560; border-radius: 4px; padding: 8px; font-family: monospace; font-size: 12px; }
+  .info { font-size: 12px; color: #aaa; margin-top: 5px; }
+  .grid-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 10px; max-height: 300px; overflow-y: auto; }
+  .grid-item { background: #0f3460; padding: 4px; border-radius: 6px; text-align: center; cursor: pointer; border: 2px solid transparent; position: relative; }
+  .grid-item:hover { border-color: #e94560; }
+  .grid-item.selected { border-color: #e94560; background: #e94560; }
+  .grid-item.discarded { opacity: 0.4; border-color: #ff4444; }
+  .grid-item.discarded::after { content: "✕"; position: absolute; top: 2px; right: 6px; color: #ff4444; font-weight: bold; font-size: 16px; }
+  .grid-item img { width: 100%; height: auto; }
+  .grid-item span { font-size: 8px; display: block; margin-top: 2px; word-break: break-all; color: #ccc; }
+  .discard-toggle { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding: 8px; background: #0f3460; border-radius: 4px; cursor: pointer; }
+  .discard-toggle input { width: 18px; height: 18px; cursor: pointer; }
+  .discard-toggle label { margin: 0; cursor: pointer; font-size: 14px; }
+  .discard-list { margin-top: 10px; padding: 8px; background: #2a1a1a; border-radius: 4px; border: 1px solid #ff4444; }
+  .discard-list h4 { color: #ff4444; margin-bottom: 5px; font-size: 12px; }
+  .discard-list ul { list-style: none; font-size: 11px; color: #aaa; }
+  .copy-paste { display: flex; gap: 8px; margin-top: 10px; }
+  .copy-paste button { flex: 1; padding: 8px; background: #0f3460; color: #fff; border: 1px solid #e94560; border-radius: 4px; cursor: pointer; font-size: 13px; }
+  .copy-paste button:hover { background: #e94560; }
+  .copy-paste button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .overlay-info { font-size: 12px; color: #aaa; margin-top: 8px; text-align: center; }
+  .avatar-adjust { background: #1a2a1a; padding: 10px; border-radius: 6px; margin-bottom: 10px; border: 1px solid #4a9; }
+  .avatar-adjust h4 { color: #4a9; margin-bottom: 8px; font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>Avatar + Accessoire Tester</h1>
+<p style="color:#aaa;margin-bottom:20px;">Bilder liegen in <code>/public/avatar/</code> (Avatare) und <code>/public/avatar/accessoires/</code> (Accessoires). Offsets werden in <code>meta.json</code> gespeichert.</p>
+
+<div class="controls">
+  <div class="control-group">
+    <h3>Avatar</h3>
+    <div class="mode-tabs">
+      <button id="modeAvatar" onclick="setMode('avatar')" class="active">Avatar anpassen</button>
+      <button id="modeAcc" onclick="setMode('accessory')">Accessoire anpassen</button>
+    </div>
+    <select id="avatarSelect"></select>
+    <div class="grid-view" id="avatarGrid"></div>
+    <div class="avatar-adjust" id="avatarAdjustPanel">
+      <h4>Avatar Höhenanpassung</h4>
+      <label>Vertikal (Y-Offset): <span class="range-value" id="avYVal">0</span>px</label>
+      <input type="range" id="avYOffset" min="-512" max="512" value="0">
+      <div class="info">Verschiebt den Avatar-Inhalt vertikal.</div>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <h3>Accessoire</h3>
+    <select id="accSelect"></select>
+    <div class="grid-view" id="accGrid"></div>
+    <div class="discard-toggle">
+      <input type="checkbox" id="discardCheckbox">
+      <label for="discardCheckbox">Dieses Accessoire verwerfen (später entfernen)</label>
+    </div>
+    <div class="discard-list" id="discardList" style="display:none;">
+      <h4>Verworfene Accessoires:</h4>
+      <ul id="discardItems"></ul>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <h3>Position anpassen</h3>
+    <label>Vertikal (Y-Offset): <span class="range-value" id="yVal">0</span>px</label>
+    <input type="range" id="yOffset" min="-512" max="512" value="0">
+    <label>Horizontal (X-Offset): <span class="range-value" id="xVal">0</span>px</label>
+    <input type="range" id="xOffset" min="-512" max="512" value="0">
+    <label>Skalierung: <span class="range-value" id="scaleVal">100</span>%</label>
+    <input type="range" id="scale" min="25" max="200" value="100">
+    <label>Rotation: <span class="range-value" id="rotVal">0</span>°</label>
+    <input type="range" id="rotation" min="-180" max="180" value="0">
+    <div class="info">Offset in px (1024x1024 Space).</div>
+    <div class="copy-paste">
+      <button id="copyBtn" onclick="copyPosition()">Position kopieren</button>
+      <button id="pasteBtn" onclick="pastePosition()" disabled>Einfügen</button>
+    </div>
+    <div class="info" id="clipboardInfo" style="display:none;">Kopiert: <span id="clipboardValues"></span></div>
+  </div>
+</div>
+
+<div class="canvas-area">
+  <div class="preview-box">
+    <h3>Vorschau (512x512)</h3>
+    <div class="avatar-container" id="preview">
+      <img class="avatar" id="previewAvatar" src="" alt="">
+      <img class="accessory" id="previewAcc" src="" alt="">
+    </div>
+    <div class="bg-options">
+      <button onclick="setBg('checker')" class="active" id="bgChecker">Checker</button>
+      <button onclick="setBg('white')" id="bgWhite">Weiß</button>
+      <button onclick="setBg('black')" id="bgBlack">Schwarz</button>
+      <button onclick="setBg('green')" id="bgGreen">Grün</button>
+    </div>
+  </div>
+
+  <div class="preview-box">
+    <h3>Overlay (2048x2048, 1024x1024 zentriert)</h3>
+    <div class="overlay-container" id="preview2">
+      <img class="avatar" id="previewAvatar2" src="" alt="">
+      <img class="accessory" id="previewAcc2" src="" alt="">
+    </div>
+    <div class="overlay-info">Avatar und Accessoire sind 1024x1024, zentriert im 2048x2048 Canvas.</div>
+  </div>
+</div>
+
+<div class="export-box">
+  <h3>Export / Gespeicherte Werte</h3>
+  <textarea id="exportData" readonly></textarea>
+  <div class="info">Enthält Avatar-Anpassungen, Positionsanpassungen UND Liste der verworfenen Accessoires.</div>
+  <button onclick="copyExport()" style="margin-top:8px;padding:8px 16px;background:#e94560;color:#fff;border:none;border-radius:4px;cursor:pointer;">Kopieren</button>
+  <button onclick="document.getElementById('metaFileInput').click()" style="margin-top:8px;padding:8px 16px;background:#0f3460;color:#fff;border:1px solid #e94560;border-radius:4px;cursor:pointer;margin-left:8px;">meta.json laden</button>
+  <input type="file" id="metaFileInput" accept=".json" style="display:none;" onchange="loadMetaFile(this)">
+  <button onclick="resetAll()" style="margin-top:8px;padding:8px 16px;background:#0f3460;color:#fff;border:1px solid #e94560;border-radius:4px;cursor:pointer;margin-left:8px;">Alle zurücksetzen</button>
+</div>
+
+<script>
+const AVATAR_DIR = './';
+const ACC_DIR = 'accessoires/';
+
+const avatarFiles = [
+  'animal_mascot_1.webp',
+  'animal_mascot_2.webp',
+  'animal_mascot_4.webp',
+  'animal_sticker_1.webp',
+  'animal_sticker_2.webp',
+  'animal_sticker_3.webp',
+  'animal_sticker_4.webp'
+];
+const accFiles = [
+  'accessoire_2_muetzen_3.webp',
+  'accessoire_2_muetzen_4.webp',
+  'accessoire_3_brillen_1.webp',
+  'accessoire_3_brillen_2.webp',
+  'accessoire_3_brillen_3.webp',
+  'accessoire_3_brillen_4.webp',
+  'accessoire_4_frisuren_1.webp',
+  'accessoire_6_masken_1.webp',
+  'accessoire_6_masken_2.webp',
+  'accessoire_6_masken_3.webp',
+  'accessoire_6_masken_4.webp',
+  'accessoire_7_abenteuer_1.webp',
+  'accessoire_7_abenteuer_3.webp',
+  'accessoire_7_abenteuer_4.webp',
+  'accessoire_8_extra_1.webp',
+  'accessoire_8_extra_2.webp',
+  'accessoire_8_extra_3.webp',
+  'accessoire_8_extra_4.webp',
+  'accessory_02_krone.webp',
+  'accessory_03_partyhut.webp',
+  'accessory_06_cap.webp',
+  'accessory_07_zauberhut.webp',
+  'accessory_08_piratenhut.webp',
+  'accessory_09_weihnachtsmuetze.webp',
+  'accessory_13_zylinder.webp',
+  'accessory_16_cowboyhut.webp'
+];
+
+let avatars = avatarFiles;
+let accessories = accFiles;
+let adjustments = {};
+let avatarAdjustments = {};
+let discarded = {};
+let clipboard = null;
+let currentMode = 'avatar';
+
+const META = {"canvas_size":1024,"avatar_size":1024,"accessory_size":1024,"avatarAdjustments":{"animal_mascot_4.webp":{"y":90},"animal_sticker_4.webp":{"y":50},"animal_sticker_3.webp":{"y":36},"animal_sticker_2.webp":{"y":96},"animal_sticker_1.webp":{"y":54}},"adjustments":{"accessoire_2_muetzen_3.webp":{"y":-392,"x":0,"scale":80,"rotation":0},"accessoire_2_muetzen_4.webp":{"y":-352,"x":0,"scale":80,"rotation":0},"accessoire_3_brillen_1.webp":{"y":-352,"x":0,"scale":80,"rotation":0},"accessoire_6_masken_1.webp":{"y":64,"x":0,"scale":65,"rotation":0},"accessoire_6_masken_2.webp":{"y":64,"x":0,"scale":65,"rotation":0},"accessoire_6_masken_3.webp":{"y":2,"x":0,"scale":83,"rotation":0},"accessoire_7_abenteuer_1.webp":{"y":-92,"x":0,"scale":100,"rotation":0},"accessoire_7_abenteuer_3.webp":{"y":-300,"x":0,"scale":100,"rotation":0},"accessoire_7_abenteuer_4.webp":{"y":-238,"x":0,"scale":100,"rotation":0},"accessoire_8_extra_1.webp":{"y":-342,"x":0,"scale":80,"rotation":0},"accessoire_3_brillen_2.webp":{"y":-320,"x":0,"scale":80,"rotation":0},"accessoire_3_brillen_4.webp":{"y":-400,"x":0,"scale":70,"rotation":0},"accessoire_6_masken_4.webp":{"y":2,"x":0,"scale":83,"rotation":0},"accessoire_8_extra_2.webp":{"y":-342,"x":0,"scale":80,"rotation":0},"accessoire_8_extra_3.webp":{"y":-342,"x":0,"scale":65,"rotation":0},"accessoire_8_extra_4.webp":{"y":-342,"x":0,"scale":58,"rotation":0},"accessory_02_krone.webp":{"y":-342,"x":0,"scale":71,"rotation":0},"accessory_03_partyhut.webp":{"y":-528,"x":0,"scale":71,"rotation":0},"accessory_06_cap.webp":{"y":-342,"x":0,"scale":57,"rotation":0},"accessory_07_zauberhut.webp":{"y":-486,"x":0,"scale":77,"rotation":0},"accessory_08_piratenhut.webp":{"y":-400,"x":0,"scale":100,"rotation":0},"accessory_09_weihnachtsmuetze.webp":{"y":-530,"x":0,"scale":90,"rotation":0},"accessory_13_zylinder.webp":{"y":-400,"x":0,"scale":70,"rotation":0},"accessory_16_cowboyhut.webp":{"y":-348,"x":0,"scale":70,"rotation":0}}};
+
+function init() {
+  populateSelect('avatarSelect', avatars, 'avatarGrid', AVATAR_DIR);
+  populateSelect('accSelect', accessories, 'accGrid', ACC_DIR);
+
+  if (META.adjustments) adjustments = JSON.parse(JSON.stringify(META.adjustments));
+  if (META.avatarAdjustments) avatarAdjustments = JSON.parse(JSON.stringify(META.avatarAdjustments));
+  if (META.discarded) { discarded = {}; META.discarded.forEach(d => discarded[d] = true); }
+
+  const saved = localStorage.getItem('adjustments');
+  if (saved) adjustments = JSON.parse(saved);
+  const savedAv = localStorage.getItem('avatarAdjustments');
+  if (savedAv) avatarAdjustments = JSON.parse(savedAv);
+  const savedDisc = localStorage.getItem('discarded');
+  if (savedDisc) discarded = JSON.parse(savedDisc);
+
+  updatePreview();
+  updateDiscardUI();
+  setMode('avatar');
+}
+
+function populateSelect(selectId, files, gridId, dir) {
+  const sel = document.getElementById(selectId);
+  const grid = document.getElementById(gridId);
+  sel.innerHTML = '';
+  grid.innerHTML = '';
+  files.forEach(f => {
+    const opt = document.createElement('option');
+    opt.value = f;
+    opt.textContent = f;
+    sel.appendChild(opt);
+
+    const div = document.createElement('div');
+    div.className = 'grid-item';
+    if (discarded[f]) div.classList.add('discarded');
+    div.innerHTML = `<img src="${dir}${f}" alt="${f}"><span>${f}</span>`;
+    div.onclick = () => { sel.value = f; updatePreview(); updateGridSelection(gridId, f); };
+    grid.appendChild(div);
+  });
+  sel.onchange = updatePreview;
+}
+
+function updateGridSelection(gridId, filename) {
+  const grid = document.getElementById(gridId);
+  grid.querySelectorAll('.grid-item').forEach(item => {
+    item.classList.toggle('selected', item.querySelector('span').textContent === filename);
+  });
+}
+
+function getAdjustment(accName) {
+  if (!adjustments[accName]) {
+    adjustments[accName] = { y: 0, x: 0, scale: 100, rotation: 0 };
+  }
+  return adjustments[accName];
+}
+
+function getAvatarAdjustment(avName) {
+  if (!avatarAdjustments[avName]) {
+    avatarAdjustments[avName] = { y: 0 };
+  }
+  return avatarAdjustments[avName];
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('modeAvatar').classList.toggle('active', mode === 'avatar');
+  document.getElementById('modeAcc').classList.toggle('active', mode === 'accessory');
+  document.getElementById('avatarAdjustPanel').style.display = mode === 'avatar' ? 'block' : 'none';
+  document.getElementById('yOffset').disabled = mode === 'avatar';
+  document.getElementById('xOffset').disabled = mode === 'avatar';
+  document.getElementById('scale').disabled = mode === 'avatar';
+  document.getElementById('rotation').disabled = mode === 'avatar';
+  updatePreview();
+}
+
+function updatePreview() {
+  const avatarFile = document.getElementById('avatarSelect').value;
+  const accFile = document.getElementById('accSelect').value;
+  const adj = getAdjustment(accFile);
+  const avAdj = getAvatarAdjustment(avatarFile);
+
+  document.getElementById('yOffset').value = adj.y;
+  document.getElementById('xOffset').value = adj.x;
+  document.getElementById('scale').value = adj.scale;
+  document.getElementById('rotation').value = adj.rotation;
+  document.getElementById('yVal').textContent = adj.y;
+  document.getElementById('xVal').textContent = adj.x;
+  document.getElementById('scaleVal').textContent = adj.scale;
+  document.getElementById('rotVal').textContent = adj.rotation;
+
+  document.getElementById('avYOffset').value = avAdj.y;
+  document.getElementById('avYVal').textContent = avAdj.y;
+
+  document.getElementById('discardCheckbox').checked = !!discarded[accFile];
+
+  const avatarSrc = AVATAR_DIR + avatarFile;
+  const accSrc = ACC_DIR + accFile;
+
+  ['previewAvatar', 'previewAvatar2'].forEach(id => {
+    document.getElementById(id).src = avatarSrc;
+  });
+  ['previewAcc', 'previewAcc2'].forEach(id => {
+    document.getElementById(id).src = accSrc;
+  });
+
+  applyTransforms();
+  updateExport();
+  updateDiscardUI();
+}
+
+function applyTransforms() {
+  const avatarFile = document.getElementById('avatarSelect').value;
+  const accFile = document.getElementById('accSelect').value;
+  const adj = getAdjustment(accFile);
+  const avAdj = getAvatarAdjustment(avatarFile);
+  const scale = adj.scale / 100;
+  const avY = avAdj.y;
+
+  const avatarTransform = `translate(0px, ${avY/2}px)`;
+  document.getElementById('previewAvatar').style.transform = avatarTransform;
+  document.getElementById('previewAvatar2').style.transform = avatarTransform;
+  document.getElementById('previewAvatar').style.transformOrigin = 'center center';
+  document.getElementById('previewAvatar2').style.transformOrigin = 'center center';
+
+  const transform = `translate(${adj.x/2}px, ${adj.y/2}px) scale(${scale}) rotate(${adj.rotation}deg)`;
+  document.getElementById('previewAcc').style.transform = transform;
+  document.getElementById('previewAcc2').style.transform = transform;
+  document.getElementById('previewAcc').style.transformOrigin = 'center center';
+  document.getElementById('previewAcc2').style.transformOrigin = 'center center';
+}
+
+function setBg(type) {
+  const colors = { checker: '', white: '#fff', black: '#000', green: '#00ff00' };
+  ['preview', 'preview2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (type === 'checker') {
+      el.style.background = 'repeating-conic-gradient(#333 0% 25%, #444 0% 50%) 50% / 20px 20px';
+    } else {
+      el.style.background = colors[type];
+    }
+  });
+  document.querySelectorAll('.bg-options button').forEach(b => b.classList.remove('active'));
+  document.getElementById('bg' + type.charAt(0).toUpperCase() + type.slice(1)).classList.add('active');
+}
+
+function updateExport() {
+  const data = {
+    avatarAdjustments: {},
+    adjustments: {},
+    discarded: Object.keys(discarded).filter(k => discarded[k])
+  };
+  Object.keys(avatarAdjustments).forEach(k => {
+    if (avatarAdjustments[k].y !== 0) {
+      data.avatarAdjustments[k] = avatarAdjustments[k];
+    }
+  });
+  Object.keys(adjustments).forEach(k => {
+    if (adjustments[k].y !== 0 || adjustments[k].x !== 0 || adjustments[k].scale !== 100 || adjustments[k].rotation !== 0) {
+      data.adjustments[k] = adjustments[k];
+    }
+  });
+  document.getElementById('exportData').value = JSON.stringify(data, null, 2);
+  localStorage.setItem('adjustments', JSON.stringify(adjustments));
+  localStorage.setItem('avatarAdjustments', JSON.stringify(avatarAdjustments));
+  localStorage.setItem('discarded', JSON.stringify(discarded));
+}
+
+function updateDiscardUI() {
+  const discardedKeys = Object.keys(discarded).filter(k => discarded[k]);
+  const listEl = document.getElementById('discardList');
+  const itemsEl = document.getElementById('discardItems');
+  if (discardedKeys.length > 0) {
+    listEl.style.display = 'block';
+    itemsEl.innerHTML = discardedKeys.map(k => `<li>${k}</li>`).join('');
+  } else {
+    listEl.style.display = 'none';
+  }
+  document.querySelectorAll('#accGrid .grid-item').forEach(item => {
+    const name = item.querySelector('span').textContent;
+    item.classList.toggle('discarded', !!discarded[name]);
+  });
+}
+
+function loadMetaFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.adjustments) adjustments = JSON.parse(JSON.stringify(data.adjustments));
+      if (data.avatarAdjustments) avatarAdjustments = JSON.parse(JSON.stringify(data.avatarAdjustments));
+      if (data.discarded) { discarded = {}; data.discarded.forEach(d => discarded[d] = true); }
+      localStorage.setItem('adjustments', JSON.stringify(adjustments));
+      localStorage.setItem('avatarAdjustments', JSON.stringify(avatarAdjustments));
+      localStorage.setItem('discarded', JSON.stringify(discarded));
+      updatePreview();
+      updateDiscardUI();
+      alert('meta.json geladen!');
+    } catch (err) {
+      alert('Fehler beim Laden: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+async function tryLoadMeta() {
+  try {
+    const resp = await fetch('./meta.json');
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data.adjustments) adjustments = JSON.parse(JSON.stringify(data.adjustments));
+      if (data.avatarAdjustments) avatarAdjustments = JSON.parse(JSON.stringify(data.avatarAdjustments));
+      if (data.discarded) { discarded = {}; data.discarded.forEach(d => discarded[d] = true); }
+      updatePreview();
+      updateDiscardUI();
+      console.log('meta.json loaded via fetch');
+    }
+  } catch (e) {
+    console.log('Could not fetch meta.json, using embedded data');
+  }
+}
+
+document.getElementById('discardCheckbox').addEventListener('change', (e) => {
+  const accFile = document.getElementById('accSelect').value;
+  discarded[accFile] = e.target.checked;
+  updateDiscardUI();
+  updateExport();
+});
+
+document.getElementById('avYOffset').addEventListener('input', (e) => {
+  const avatarFile = document.getElementById('avatarSelect').value;
+  const avAdj = getAvatarAdjustment(avatarFile);
+  avAdj.y = parseInt(e.target.value);
+  document.getElementById('avYVal').textContent = avAdj.y;
+  applyTransforms();
+  updateExport();
+});
+
+['yOffset', 'xOffset', 'scale', 'rotation'].forEach(id => {
+  document.getElementById(id).addEventListener('input', (e) => {
+    const accFile = document.getElementById('accSelect').value;
+    const adj = getAdjustment(accFile);
+    if (id === 'yOffset') { adj.y = parseInt(e.target.value); document.getElementById('yVal').textContent = adj.y; }
+    if (id === 'xOffset') { adj.x = parseInt(e.target.value); document.getElementById('xVal').textContent = adj.x; }
+    if (id === 'scale') { adj.scale = parseInt(e.target.value); document.getElementById('scaleVal').textContent = adj.scale; }
+    if (id === 'rotation') { adj.rotation = parseInt(e.target.value); document.getElementById('rotVal').textContent = adj.rotation; }
+    applyTransforms();
+    updateExport();
+  });
+});
+
+function copyPosition() {
+  const accFile = document.getElementById('accSelect').value;
+  const adj = getAdjustment(accFile);
+  clipboard = { y: adj.y, x: adj.x, scale: adj.scale, rotation: adj.rotation };
+  document.getElementById('pasteBtn').disabled = false;
+  document.getElementById('clipboardInfo').style.display = 'block';
+  document.getElementById('clipboardValues').textContent = `Y=${clipboard.y}, X=${clipboard.x}, Scale=${clipboard.scale}%, Rot=${clipboard.rotation}°`;
+}
+
+function pastePosition() {
+  if (!clipboard) return;
+  const accFile = document.getElementById('accSelect').value;
+  const adj = getAdjustment(accFile);
+  adj.y = clipboard.y;
+  adj.x = clipboard.x;
+  adj.scale = clipboard.scale;
+  adj.rotation = clipboard.rotation;
+  document.getElementById('yOffset').value = adj.y;
+  document.getElementById('xOffset').value = adj.x;
+  document.getElementById('scale').value = adj.scale;
+  document.getElementById('rotation').value = adj.rotation;
+  document.getElementById('yVal').textContent = adj.y;
+  document.getElementById('xVal').textContent = adj.x;
+  document.getElementById('scaleVal').textContent = adj.scale;
+  document.getElementById('rotVal').textContent = adj.rotation;
+  applyTransforms();
+  updateExport();
+}
+
+function copyExport() {
+  const ta = document.getElementById('exportData');
+  ta.select();
+  document.execCommand('copy');
+  alert('Kopiert!');
+}
+
+function resetAll() {
+  if (confirm('Alle Anpassungen und Verwurf-Liste zurücksetzen?')) {
+    adjustments = {};
+    avatarAdjustments = {};
+    discarded = {};
+    localStorage.removeItem('adjustments');
+    localStorage.removeItem('avatarAdjustments');
+    localStorage.removeItem('discarded');
+    updatePreview();
+  }
+}
+
+init();
+tryLoadMeta();
+</script>
+</body>
+</html>
+PYEOF
+# Now use Python to inject the file lists and META data
+python3 << 'PYEOF'
+import os, json
+
+src = "/Users/malte/Develpoment/Websites/games"
+avatar_dir = os.path.join(src, "public", "avatar")
+acc_dir = os.path.join(src, "public", "avatar", "accessoires")
+
+avatars = sorted([f for f in os.listdir(avatar_dir) if f.endswith('.webp')])
+accs = sorted(os.listdir(acc_dir))
+
+with open(os.path.join(avatar_dir, "meta.json")) as f:
+    meta = json.load(f)
+
+# Read the template
+with open("/tmp/avatar_tester_template.html") as f:
+    html = f.read()
+
+# Replace placeholders
+avatar_js = "const avatarFiles = [\n  " + ",\n  ".join("'" + f + "'" for f in avatars) + "\n];"
+acc_js = "const accFiles = [\n  " + ",\n  ".join("'" + f + "'" for f in accs) + "\n];"
+meta_js = "const META = " + json.dumps(meta, ensure_ascii=False) + ";"
+
+html = html.replace("const avatarFiles = [\n  'animal_mascot_1.webp',\n  'animal_mascot_2.webp'\n];", avatar_js)
+# Actually, the template doesn't have this placeholder. Let me just insert after the ACC_DIR line.
+html = html.replace("const ACC_DIR = 'accessoires/';", "const ACC_DIR = 'accessoires/';\n\n" + avatar_js + "\n" + acc_js + "\n" + meta_js)
+
+out_path = os.path.join(avatar_dir, "avatar_tester.html")
+with open(out_path, "w") as f:
+    f.write(html)
+print(f"Generated tester: {len(avatars)} avatars, {len(accs)} accessories")
+PYEOF

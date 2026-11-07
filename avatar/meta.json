@@ -1,0 +1,168 @@
+{
+  "canvas_size": 1024,
+  "avatar_size": 1024,
+  "accessory_size": 1024,
+  "avatarAdjustments": {
+    "animal_mascot_4.webp": {
+      "y": 90
+    },
+    "animal_sticker_4.webp": {
+      "y": 50
+    },
+    "animal_sticker_3.webp": {
+      "y": 36
+    },
+    "animal_sticker_2.webp": {
+      "y": 96
+    },
+    "animal_sticker_1.webp": {
+      "y": 54
+    }
+  },
+  "adjustments": {
+    "accessoire_2_muetzen_3.webp": {
+      "y": -392,
+      "x": 0,
+      "scale": 80,
+      "rotation": 0
+    },
+    "accessoire_2_muetzen_4.webp": {
+      "y": -352,
+      "x": 0,
+      "scale": 80,
+      "rotation": 0
+    },
+    "accessoire_3_brillen_1.webp": {
+      "y": -352,
+      "x": 0,
+      "scale": 80,
+      "rotation": 0
+    },
+    "accessoire_6_masken_1.webp": {
+      "y": 64,
+      "x": 0,
+      "scale": 65,
+      "rotation": 0
+    },
+    "accessoire_6_masken_2.webp": {
+      "y": 64,
+      "x": 0,
+      "scale": 65,
+      "rotation": 0
+    },
+    "accessoire_6_masken_3.webp": {
+      "y": 2,
+      "x": 0,
+      "scale": 83,
+      "rotation": 0
+    },
+    "accessoire_7_abenteuer_1.webp": {
+      "y": -92,
+      "x": 0,
+      "scale": 100,
+      "rotation": 0
+    },
+    "accessoire_7_abenteuer_3.webp": {
+      "y": -300,
+      "x": 0,
+      "scale": 100,
+      "rotation": 0
+    },
+    "accessoire_7_abenteuer_4.webp": {
+      "y": -238,
+      "x": 0,
+      "scale": 100,
+      "rotation": 0
+    },
+    "accessoire_8_extra_1.webp": {
+      "y": -342,
+      "x": 0,
+      "scale": 80,
+      "rotation": 0
+    },
+    "accessoire_3_brillen_2.webp": {
+      "y": -320,
+      "x": 0,
+      "scale": 80,
+      "rotation": 0
+    },
+    "accessoire_3_brillen_4.webp": {
+      "y": -400,
+      "x": 0,
+      "scale": 70,
+      "rotation": 0
+    },
+    "accessoire_6_masken_4.webp": {
+      "y": 2,
+      "x": 0,
+      "scale": 83,
+      "rotation": 0
+    },
+    "accessoire_8_extra_2.webp": {
+      "y": -342,
+      "x": 0,
+      "scale": 80,
+      "rotation": 0
+    },
+    "accessoire_8_extra_3.webp": {
+      "y": -342,
+      "x": 0,
+      "scale": 65,
+      "rotation": 0
+    },
+    "accessoire_8_extra_4.webp": {
+      "y": -342,
+      "x": 0,
+      "scale": 58,
+      "rotation": 0
+    },
+    "accessory_02_krone.webp": {
+      "y": -342,
+      "x": 0,
+      "scale": 71,
+      "rotation": 0
+    },
+    "accessory_03_partyhut.webp": {
+      "y": -528,
+      "x": 0,
+      "scale": 71,
+      "rotation": 0
+    },
+    "accessory_06_cap.webp": {
+      "y": -342,
+      "x": 0,
+      "scale": 57,
+      "rotation": 0
+    },
+    "accessory_07_zauberhut.webp": {
+      "y": -486,
+      "x": 0,
+      "scale": 77,
+      "rotation": 0
+    },
+    "accessory_08_piratenhut.webp": {
+      "y": -400,
+      "x": 0,
+      "scale": 100,
+      "rotation": 0
+    },
+    "accessory_09_weihnachtsmuetze.webp": {
+      "y": -530,
+      "x": 0,
+      "scale": 90,
+      "rotation": 0
+    },
+    "accessory_13_zylinder.webp": {
+      "y": -400,
+      "x": 0,
+      "scale": 70,
+      "rotation": 0
+    },
+    "accessory_16_cowboyhut.webp": {
+      "y": -348,
+      "x": 0,
+      "scale": 70,
+      "rotation": 0
+    }
+  }
+}
